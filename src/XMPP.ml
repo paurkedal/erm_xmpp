@@ -70,12 +70,19 @@ sig
     | Chat
     | Groupchat
     | Headline
+
+  type delay = { (* XEP-0203, XEP-0091 *)
+    delay_from : string option;
+    delay_stamp : string;
+    delay_legacy : bool;
+  }
         
   type message_content = {
     message_type : message_type option;
     body : string option;
     subject : string option;
-    thread : string option
+    thread : string option;
+    message_delay : delay option
   }
 
   val send_message :
@@ -104,6 +111,7 @@ sig
     show : presence_show option;
     status : string option;
     priority : int option;
+    presence_delay : delay option
   }
       
   type presence_stanza = presence_content stanza
@@ -158,6 +166,8 @@ struct
   let ns_xmpp_sasl = Some "urn:ietf:params:xml:ns:xmpp-sasl"
   let ns_xmpp_bind = Some "urn:ietf:params:xml:ns:xmpp-bind"
   let ns_xmpp_session = Some "urn:ietf:params:xml:ns:xmpp-session"
+  let ns_delay = Some "urn:xmpp:delay"
+  let ns_delay_legacy = Some "jabber:x:delay"
 
   type iq_request =
     | IQSet of element
@@ -255,7 +265,17 @@ struct
       else
         (id, from, to_, kind, lang)
     ) (None, None, None, None, None) attrs
-      
+
+  let parse_delay_attrs attrs =
+    List.fold_left (fun (from, stamp) (name, value) ->
+      if name = (no_ns, "from") then
+	(Some value, stamp)
+      else if name = (no_ns, "stamp") then
+	(from, Some value)
+      else
+	(from, stamp)
+    ) (None, None) attrs
+
   let send session_data v =
     let module S = (val session_data.socket : Socket) in
       S.write S.socket v
@@ -291,12 +311,19 @@ struct
     | Chat
     | Groupchat
     | Headline
+
+  type delay = {
+    delay_from : string option;
+    delay_stamp : string;
+    delay_legacy : bool;
+  }
         
   type message_content = {
     message_type : message_type option;
     body : string option;
     subject : string option;
-    thread : string option
+    thread : string option;
+    message_delay : delay option
   }
 
   let string_of_message_type = function
@@ -327,23 +354,33 @@ struct
             )
             | None -> None
         in
-        let x, body, subject, thread =
-          List.fold_left (fun (x, body, subject, thread) -> function
+        let x, body, subject, thread, delay =
+          List.fold_left (fun (x, body, subject, thread, delay) -> function
             | Xmlelement (qname, _attrs, els) as el->
               if qname = (ns_client, "body") then
                 let body = collect_cdata els in
-                  (x, Some body, subject, thread)
+                  (x, Some body, subject, thread, delay)
               else if qname = (ns_client, "subject") then
                 let subject = collect_cdata els in
-                  (x, body, Some subject, thread)
+                  (x, body, Some subject, thread, delay)
               else if qname = (ns_client, "thread") then
                 let thread = collect_cdata els in
-                  (x, body, subject, Some thread)
+                  (x, body, subject, Some thread, delay)
+	      else if qname = (ns_delay, "delay") then
+		let delay_from, delay_stamp_opt = parse_delay_attrs _attrs in
+		let delay_stamp = string_of_option delay_stamp_opt in
+		  (x, body, subject, thread,
+		   Some {delay_from; delay_stamp; delay_legacy = false})
+	      else if qname = (ns_delay_legacy, "x") then
+		let delay_from, delay_stamp_opt = parse_delay_attrs _attrs in
+		let delay_stamp = string_of_option delay_stamp_opt in
+		  (x, body, subject, thread,
+		   Some {delay_from; delay_stamp; delay_legacy = true})
               else
-                (el :: x, body, subject, thread)
+                (el :: x, body, subject, thread, delay)
             | Xmlcdata _ ->
-              (x, body, subject, thread)
-          ) ([], None, None, None) els
+              (x, body, subject, thread, delay)
+          ) ([], None, None, None, None) els
         in
         let message_stanza = {
           id = id;
@@ -353,7 +390,8 @@ struct
           content = { message_type = kind;
                       body = body;
                       subject = subject;
-                      thread = thread
+                      thread = thread;
+		      message_delay = delay
                     };
           x = x
         }
@@ -410,7 +448,8 @@ struct
     presence_type : presence_type option;
     show : presence_show option;
     status : string option;
-    priority : int option
+    priority : int option;
+    presence_delay : delay option
   }
 
   type presence_stanza = presence_content stanza
@@ -436,25 +475,35 @@ struct
                 | "unavailable" -> Some Unavailable
                 | _ -> None
         in
-        let x, show, status, priority =
-          List.fold_left (fun (x, show, status, priority) -> function
+        let x, show, status, priority, delay =
+          List.fold_left (fun (x, show, status, priority, delay) -> function
             | Xmlelement (qname, _attrs, els) as el ->
               if qname = (ns_client, "show") then
                 let show = collect_cdata els in
-                  (x, Some show, status, priority)
+                  (x, Some show, status, priority, delay)
               else if qname = (ns_client, "status") then
                 let status = collect_cdata els in
-                  (x, show, Some status, priority)
+                  (x, show, Some status, priority, delay)
               else if qname = (ns_client, "priority") then
                 let priority =
                   try Some (int_of_string (collect_cdata els))
                   with _ -> None in
-                  (x, show, status, priority)
+                  (x, show, status, priority, delay)
+	      else if qname = (ns_delay, "delay") then
+		let delay_from, delay_stamp_opt = parse_delay_attrs _attrs in
+		let delay_stamp = string_of_option delay_stamp_opt in
+		  (x, show, status, priority,
+		   Some {delay_from; delay_stamp; delay_legacy = false})
+	      else if qname = (ns_delay_legacy, "x") then
+		let delay_from, delay_stamp_opt = parse_delay_attrs _attrs in
+		let delay_stamp = string_of_option delay_stamp_opt in
+		  (x, show, status, priority,
+		   Some {delay_from; delay_stamp; delay_legacy = true})
               else
-                (el :: x, show, status, priority)
+                (el :: x, show, status, priority, delay)
             | Xmlcdata _ ->
-              (x, show, status, priority)
-          ) ([], None, None, None) els
+              (x, show, status, priority, delay)
+          ) ([], None, None, None, None) els
         in
         let show =
           match show with
@@ -475,7 +524,8 @@ struct
           content = { presence_type = kind;
                       show = show;
                       status = status;
-                      priority = priority
+                      priority = priority;
+		      presence_delay = delay
                     };
           x = x
         }
