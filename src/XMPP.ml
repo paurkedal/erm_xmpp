@@ -621,9 +621,9 @@ struct
   let sasl_digest session_data password nextstep =
     let rec step1 session_data _attrs els =
       unregister_stanza_handler session_data (ns_xmpp_sasl, "challenge");
-	    let ch_text = collect_cdata els in
-	    let resp = Sasl.sasl_digest_response ch_text
-        session_data.myjid.lnode session_data.myjid.domain password in
+           let ch_text = collect_cdata els in
+           let resp = Sasl.sasl_digest_response ch_text
+        session_data.myjid.lnode ("xmpp/" ^ session_data.myjid.domain) password in
         register_stanza_handler
           session_data (ns_xmpp_sasl, "challenge") step2_challenge;
         register_stanza_handler
