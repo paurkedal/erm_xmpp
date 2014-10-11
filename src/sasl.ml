@@ -159,22 +159,22 @@ let parse_digest_md5_challenge str =
   let pairs = get_pairs str in
     try
       let qop = parse_qop (List.assoc "qop" pairs)
-      and nonce = List.assoc "nonce" pairs in
-        (*
-      and realm = List.assoc "realm" pairs in
-        (realm, qop, nonce)
-        *)
-        (qop, nonce)
+      and nonce = List.assoc "nonce" pairs
+      and realm = if List.mem_assoc "realm" pairs then
+                    List.assoc "realm" pairs
+                  else
+                    ""
+      in
+      (realm, qop, nonce)
     with Not_found ->
       raise (Error "Malformed SASL challenge")
 
-let sasl_digest_response chl username server passwd =
+let sasl_digest_response chl username digest_uri passwd =
   let str = b64dec chl in
-  let qop, nonce = parse_digest_md5_challenge str
+  let realm, qop, nonce = parse_digest_md5_challenge str
   and cnonce = make_cnonce ()
   and nc = "00000001"
-  and digest_uri ="xmpp/" ^ server
-  and realm = server in
+  in
     if List.mem "auth" qop then
       let qop_method = "auth" in
       let response = response_value ~username ~realm
