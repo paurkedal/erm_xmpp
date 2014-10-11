@@ -262,8 +262,7 @@ struct
           
   let make_iq_request session_data ?jid_from ?jid_to ?lang request callback =
     session_data.sid <- session_data.sid + 1;
-    let id =
-      string_of_int session_data.sid ^ ":" ^ string_of_int (Random.int 1000) in
+    let id = string_of_int session_data.sid in
     let kind, el =
       match request with
         | IQSet el -> "set", el
