@@ -65,11 +65,11 @@ struct
     print_endline str;
     Tls_lwt.Unix.write s (Cstruct.of_string str)
 
-  let switch fd =
+  let switch fd host =
     Tls_lwt.rng_init () >>= fun () ->
     X509_lwt.authenticator `No_authentication_I'M_STUPID >>= fun authenticator ->
     let config = Tls.Config.client ~authenticator () in
-    Tls_lwt.Unix.client_of_fd config fd
+    Tls_lwt.Unix.client_of_fd config ~host fd
 
   let close s =
     Tls_lwt.Unix.close s
@@ -156,7 +156,7 @@ let _ =
                                         include PlainSocket
       end in
       let make_tls () =
-        TLSSocket.switch (PlainSocket.get_fd socket_data) >>= fun socket_data ->
+        TLSSocket.switch (PlainSocket.get_fd socket_data) server >>= fun socket_data ->
         let module TLS_module = struct type t = Tls_lwt.Unix.t
                                        let socket = socket_data
                                        include TLSSocket
