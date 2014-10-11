@@ -114,6 +114,7 @@ let presence_error t ?id ?jid_from ?jid_to ?lang error =
   return ()
     
 let session t =
+  print_endline "in session" ;
   register_iq_request_handler t Version.ns_version
     (fun ev _jid_from _jid_to _lang () ->
       match ev with
@@ -129,6 +130,9 @@ let session t =
     (parse_message ~callback:message_callback ~callback_error:message_error);
   register_stanza_handler t (ns_client, "presence")
     (parse_presence ~callback:presence_callback ~callback_error:presence_error);
+  print_endline "sending presence" ;
+  send_presence t () >>= fun () ->
+  print_endline "returning" ;
   return ()
 
 let _ =
@@ -159,6 +163,7 @@ let _ =
         end in
           return (module TLS_module : XMPPClient.Socket)
       in
+      print_endline "setting up" ;
         XMPPClient.setup_session
           ~user_data:()
           ~myjid
