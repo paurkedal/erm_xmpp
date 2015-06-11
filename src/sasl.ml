@@ -118,9 +118,21 @@ let parse_qop str =
     with _ ->
       raise (Error "Malformed qop in SASL challenge")
 
-let h s = Cryptokit.hash_string (Cryptokit.Hash.md5 ()) s
-let hex s = Cryptokit.transform_string (Cryptokit.Hexa.encode ()) s
-  
+let h s =
+  let cs = Cstruct.of_string s in
+  let res = Nocrypto.Hash.digest `MD5 cs in
+  Cstruct.to_string res
+
+let hex s =
+  let cs = Cstruct.of_string s in
+  let rec fill acc = function
+    | x when x = Cstruct.len cs -> acc
+    | x ->
+       let datum = acc ^ Printf.sprintf "%02x" (Cstruct.get_uint8 cs x) in
+       fill datum (x + 1)
+  in
+  fill "" 0
+
 let response_value ~username ~realm ~nonce ~cnonce ~qop ~nc ~digest_uri ~passwd =
   let a1 =
     (h (username ^ ":" ^ realm ^ ":" ^ passwd)) ^ ":" ^ nonce ^ ":" ^ cnonce
@@ -130,29 +142,39 @@ let response_value ~username ~realm ~nonce ~cnonce ~qop ~nc ~digest_uri ~passwd 
     hex (h t)
 
 let make_cnonce () =
-  let r = Array.init 8 (fun _ -> Char.chr(Random.int 256)) in
-    hex (Array.fold_left (fun a b -> a ^ (String.make 1 b)) "" r)
+  let random = Nocrypto.Rng.generate 8 in
+  hex (Cstruct.to_string random)
+
+let b64enc data =
+  let cs = Cstruct.of_string data in
+  let to_str d = Cstruct.to_string d in
+  to_str (Nocrypto.Base64.encode cs)
+
+let b64dec data =
+  let cs = Cstruct.of_string data in
+  let to_str d = Cstruct.to_string d in
+  to_str (Nocrypto.Base64.decode cs)
 
 let parse_digest_md5_challenge str =
   let pairs = get_pairs str in
     try
       let qop = parse_qop (List.assoc "qop" pairs)
-      and nonce = List.assoc "nonce" pairs in
-        (*
-      and realm = List.assoc "realm" pairs in
-        (realm, qop, nonce)
-        *)
-        (qop, nonce)
+      and nonce = List.assoc "nonce" pairs
+      and realm = if List.mem_assoc "realm" pairs then
+                    List.assoc "realm" pairs
+                  else
+                    ""
+      in
+      (realm, qop, nonce)
     with Not_found ->
       raise (Error "Malformed SASL challenge")
 
-let sasl_digest_response chl username server passwd =
-  let str = Cryptokit.transform_string (Cryptokit.Base64.decode ()) chl in
-  let qop, nonce = parse_digest_md5_challenge str
+let sasl_digest_response chl username digest_uri passwd =
+  let str = b64dec chl in
+  let realm, qop, nonce = parse_digest_md5_challenge str
   and cnonce = make_cnonce ()
   and nc = "00000001"
-  and digest_uri ="xmpp/" ^ server
-  and realm = server in
+  in
     if List.mem "auth" qop then
       let qop_method = "auth" in
       let response = response_value ~username ~realm
@@ -161,12 +183,16 @@ let sasl_digest_response chl username server passwd =
         "charset=utf-8,username=\"%s\",realm=\"%s\",nonce=\"%s\",cnonce=\"%s\",nc=%s,qop=\"%s\",digest-uri=\"%s\",response=%s"
         username realm nonce cnonce nc qop_method digest_uri response
       in
-        Cryptokit.transform_string (Cryptokit.Base64.encode_compact_pad ()) resp
+      b64enc resp
     else
       raise (Error "No known qop methods")
 
 let sasl_digest_rspauth chl =
-  let str = Cryptokit.transform_string (Cryptokit.Base64.decode ()) chl in
+  let str = b64dec chl in
   let pairs = get_pairs str in
   let _rspauth = List.assoc "rspauth" pairs in
-    ()
+  ()
+
+let sasl_plain username middle passwd =
+  let str = Printf.sprintf "%s\x00%s\x00%s" username middle passwd in
+  b64enc str

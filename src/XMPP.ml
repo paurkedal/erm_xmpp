@@ -282,8 +282,7 @@ struct
           
   let make_iq_request session_data ?jid_from ?jid_to ?lang request callback =
     session_data.sid <- session_data.sid + 1;
-    let id =
-      string_of_int session_data.sid ^ ":" ^ string_of_int (Random.int 1000) in
+    let id = string_of_int session_data.sid in
     let kind, el =
       match request with
         | IQSet el -> "set", el
@@ -672,9 +671,9 @@ struct
   let sasl_digest session_data password nextstep =
     let rec step1 session_data _attrs els =
       unregister_stanza_handler session_data (ns_xmpp_sasl, "challenge");
-	    let ch_text = collect_cdata els in
-	    let resp = Sasl.sasl_digest_response ch_text
-        session_data.myjid.lnode session_data.myjid.domain password in
+           let ch_text = collect_cdata els in
+           let resp = Sasl.sasl_digest_response ch_text
+        session_data.myjid.lnode ("xmpp/" ^ session_data.myjid.domain) password in
         register_stanza_handler
           session_data (ns_xmpp_sasl, "challenge") step2_challenge;
         register_stanza_handler
@@ -710,11 +709,10 @@ struct
               [make_attr "mechanism" "DIGEST-MD5"] []))
         
   let sasl_plain session_data password nextstep =
-    let sasl_data = 
-      Cryptokit.transform_string (Cryptokit.Base64.encode_compact  ())
-	      (Printf.sprintf "%s\x00%s\x00%s"
-	         (session_data.myjid.node ^ "@" ^ session_data.myjid.domain)
-           session_data.myjid.node password)  ^ "==" in
+    let sasl_data =
+      Sasl.sasl_plain (session_data.myjid.node ^ "@" ^ session_data.myjid.domain)
+                      session_data.myjid.node password
+    in
       register_stanza_handler session_data (ns_xmpp_sasl, "failure")
         (fun session_data _attrs els ->
           unregister_stanza_handler session_data (ns_xmpp_sasl, "success");
