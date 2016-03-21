@@ -146,14 +146,12 @@ let make_cnonce () =
   hex (Cstruct.to_string random)
 
 let b64enc data =
-  let cs = Cstruct.of_string data in
-  let to_str d = Cstruct.to_string d in
-  to_str (Nocrypto.Base64.encode cs)
+  Cstruct.to_string (Nocrypto.Base64.encode (Cstruct.of_string data))
 
 let b64dec data =
-  let cs = Cstruct.of_string data in
-  let to_str d = Cstruct.to_string d in
-  to_str (Nocrypto.Base64.decode cs)
+  match Nocrypto.Base64.decode (Cstruct.of_string data) with
+  | None -> assert false
+  | Some x -> Cstruct.to_string x
 
 let parse_digest_md5_challenge str =
   let pairs = get_pairs str in
