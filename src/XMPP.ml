@@ -659,11 +659,12 @@ struct
             let myjid = get_cdata
               (get_subelement (ns_xmpp_bind, "jid") el) in
               session_data.myjid <- JID.of_string myjid;
-              make_session session_data session_handler
+              return ()
           | IQResult None
           | IQError _ ->
             raise (Error "bind")
-      )
+      ) >>= fun () ->
+    make_session session_data session_handler
       
   exception AuthError of string
   exception AuthFailure of string
