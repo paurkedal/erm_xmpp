@@ -209,11 +209,11 @@ module type S = functor (M : MONAD) ->
 sig
   type p
   exception XmlError of string
-  val create : (string -> int -> int -> int M.t) -> p
+  val create : (bytes -> int -> int -> int M.t) -> p
   val parse : p -> (Xml.qname -> Xml.attribute list -> unit M.t) ->
     (Xml.qname * Xml.attribute list * Xml.element list -> unit M.t) ->
     (unit -> unit M.t) -> unit M.t
-  val reset : p -> (string -> int -> int -> int M.t) option -> unit
+  val reset : p -> (bytes -> int -> int -> int M.t) option -> unit
 end
   
 module XmlStream (M : MONAD) =

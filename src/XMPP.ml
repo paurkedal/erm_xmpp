@@ -186,7 +186,7 @@ struct
   sig
     type t
     val socket : t
-    val read : t -> string -> int -> int -> int M.t
+    val read : t -> bytes -> int -> int -> int M.t
     val write : t -> string -> unit M.t
     val close : t -> unit M.t
   end
