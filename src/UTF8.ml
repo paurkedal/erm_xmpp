@@ -102,10 +102,10 @@ let decode str =
 
 let encode ustr =
   let len = List.fold_left (fun len x -> utf8_width x + len) 0 ustr in
-  let str = String.create len in
+  let str = Bytes.create len in
   let _len =
     List.fold_left (fun i x ->
-      List.fold_left (fun j c -> String.unsafe_set str j c; succ  j
+      List.fold_left (fun j c -> Bytes.unsafe_set str j c; succ  j
       ) i (encode_unicode x)
     ) 0 ustr in
     str

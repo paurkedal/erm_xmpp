@@ -24,7 +24,7 @@ let nodeprep ?(strong=false) str =
       ) else
         Xmpp_prep.nodeprep (UTF8.decode str)
     in
-      UTF8.encode normalized
+      Bytes.to_string (UTF8.encode normalized)
   with _ -> raise MalformedJID
 
 let nameprep ?(strong=false) str =
@@ -38,7 +38,7 @@ let nameprep ?(strong=false) str =
       ) else
         Xmpp_prep.nameprep (UTF8.decode str)
     in
-      UTF8.encode normalized
+      Bytes.to_string (UTF8.encode normalized)
   with _ -> raise MalformedJID
 
 let resourceprep ?(strong=false) str =
@@ -51,7 +51,7 @@ let resourceprep ?(strong=false) str =
       ) else
         Xmpp_prep.resourceprep (UTF8.decode str)
     in
-      UTF8.encode normalized
+      Bytes.to_string (UTF8.encode normalized)
   with _ -> raise MalformedJID
 
 let of_string ?strong str =
@@ -173,6 +173,6 @@ let to_idn jid =
               if len < 1 || len > 63 then
                 raise MalformedDomain
               else
-                UTF8.encode part
+                Bytes.to_string (UTF8.encode part)
     ) parts in
     String.concat "." eparts
