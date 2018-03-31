@@ -3,7 +3,7 @@ Name:        erm_xmpp
 Version:     0.4
 Authors:     Anastasia Gornostaeva
 Copyrights:  (C) 2004 Anastasia Gornostaeva
-License:     BSD3
+License:     BSD-3-clause
 LicenseFile: LICENCE
 Plugins:     DevFiles (0.3), META (0.3)
 BuildTools:  ocamlbuild
@@ -65,7 +65,7 @@ Executable punycode_test
   CompiledObject: best
   MainIs: punycode_test.ml
   BuildDepends: erm_xmpp, erm_treap  
-  
+
 # Document api
 #   Title:      API reference
 #   InstallDir: $docdir
