@@ -21,14 +21,14 @@ struct
     Lwt_unix.read fd buf start len >>=
       (fun size ->
         if size > 0 then
-          print_string "IN: "; print_endline (String.sub buf start size);
+          print_string "IN: "; print_endline (Bytes.sub_string buf start size);
         return size
       )
 
   let write fd str =
     print_string "OUT: ";
-    print_endline str;
-    let len = String.length str in
+    print_endline (Bytes.to_string str);
+    let len = Bytes.length str in
     let rec aux_send start =
       Lwt_unix.write fd str start (len - start) >>= fun sent ->
     if sent = 0 then

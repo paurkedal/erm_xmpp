@@ -1,0 +1,21 @@
+opam-version: "1.2"
+name: "erm_xmpp"
+author: "Anastasia Gornostaeva <ermine@sulci.ru>"
+maintainer: "Petter A. Urkedal <paurkedal@gmail.com>"
+homepage: "https://github.com/ermine/xmpp"
+dev-repo: "https://github.com/paurkedal/erm_xmpp.git#dev"
+license: "BSD3"
+
+build: ["dune" "build" "-p" name "-j" jobs]
+build-test: ["dune" "runtest" "-p" name "-j" jobs]
+
+depends: [
+  "cstruct"
+  "dune" {build}
+  #"erm_treap" {test}
+  "erm_xml"
+  "lwt" {test}
+  "ocamlfind" {build}
+  "nocrypto"
+  #"tls" {test}
+]

@@ -149,7 +149,7 @@ struct
     else
       refill s >>= fun () -> get s
 
-  let set_decoder encname strm =
+  let set_decoder encname _strm =
     if encname = "UTF-8" then () else assert false
 
   let make_stream read =
@@ -163,7 +163,7 @@ struct
 
   exception XmlError of string
 
-  let error ?stream exn =
+  let error ?stream:_ exn =
     fail (XmlError (Printexc.to_string exn))
 
   let next_char strm eof f =
@@ -191,10 +191,10 @@ struct
   let emit_end_tag name =
     return (Some (EndTag name))
 
-  let emit_doctype doctype =
+  let emit_doctype _doctype =
     return (Some Noop)
 
-  let emit_pi target data =
+  let emit_pi _target _data =
     return (Some Noop)
 
   let emit_text text =
@@ -310,7 +310,7 @@ struct
               loop ()
                 
             | EndTag _name ->
-              let (qname, lnss) = Stack.pop p.stack_ns in
+              let (_qname, lnss) = Stack.pop p.stack_ns in
                 remove_namespaces p.namespaces lnss;
                 let (q, a, els) = Stack.pop p.stack in
                   if Stack.is_empty p.stack then
@@ -335,13 +335,13 @@ struct
 
   type stream = input -> int option t
       
-  let set_decoder encname strm = ()
+  let set_decoder _encname _strm = ()
 
   let make_stream () = get
 
   exception XmlError of string
 
-  let error ?stream exn =
+  let error ?stream:_ exn =
     fail (XmlError (Printexc.to_string exn))
 
   let next_char strm eof f =
@@ -439,7 +439,7 @@ struct
             add_child (Xmlcdata text);
             loop (XmlParser.lexer p.state p.strm)
           | EndTag _name ->
-            let (qname, lnss) = Stack.pop p.stack_ns in
+            let (_qname, lnss) = Stack.pop p.stack_ns in
               remove_namespaces p.namespaces lnss;
               let (q, a, els) = Stack.pop p.stack in
                 if Stack.is_empty p.stack then
@@ -482,7 +482,7 @@ struct
       state = state;
       strm = strm;
       read = read;
-      cont = (fun source -> XmlParser.lexer state strm);
+      cont = (fun _source -> XmlParser.lexer state strm);
       source = IE.make_chunk 8192
     } in
       Hashtbl.add p.namespaces "xml" ns_xml;

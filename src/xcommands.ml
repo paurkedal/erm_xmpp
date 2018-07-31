@@ -2,7 +2,6 @@
  * (c) 2005 Anastasia Gornostaeva
  *)
 
-open Light_xmpp
 open XMPP
 open Error
 

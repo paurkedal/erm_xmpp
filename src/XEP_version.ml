@@ -8,7 +8,6 @@
 module Make (X : XMPP.S) =
 struct
   open Xml
-  open StanzaError
   open X
 
   let ns_version = Some "jabber:iq:version"
@@ -33,13 +32,13 @@ struct
   let decode _attrs els =
     let result =
       List.fold_left (fun item -> function
-        | Xmlelement ((ns_version, "name"), _, _) as el ->
+        | Xmlelement ((_ns_version, "name"), _, _) as el ->
           let value = get_cdata el in
             {item with name = value}
-        | Xmlelement ((ns_version, "version"), _, _) as el ->
+        | Xmlelement ((_ns_version, "version"), _, _) as el ->
           let value = get_cdata el in
             {item with version = value}
-        | Xmlelement ((ns_version, "os"), _, _) as el ->
+        | Xmlelement ((_ns_version, "os"), _, _) as el ->
           let value = get_cdata el in
             {item with os = value}
         | _ -> item
@@ -59,7 +58,7 @@ struct
       match ev with
         | IQResult el -> (
           match el with
-            | Some (Xmlelement ((ns_version, "query"), attrs, els)) ->
+            | Some (Xmlelement ((_ns_version, "query"), attrs, els)) ->
               callback ?jid_from ?jid_to ?lang (decode attrs els)
             | _ ->
               callback ?jid_from ?jid_to ?lang None

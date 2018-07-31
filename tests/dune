@@ -1,0 +1,18 @@
+(executables
+  (names punycode_test)
+  (modules punycode_test)
+  (libraries erm_xmpp))
+
+;(executables
+;  (names test test_ie)
+;  (modules test test_ie)
+;  (libraries erm_treap erm_xmpp))
+
+;(executables
+;  (names lwt_test)
+;  (modules lwt_test)
+;  (libraries erm_xmpp lwt lwt.unix tls tls.lwt))
+
+(alias
+  (name runtest)
+  (deps punycode_test.exe))

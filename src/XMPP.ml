@@ -696,7 +696,7 @@ struct
       unregister_stanza_handler session_data (ns_xmpp_sasl, "success");
       let p = get_first_element els in
 	      fail (AuthFailure (get_name (get_qname p)))
-    and step2_success session_data _attrs els =
+    and step2_success session_data _attrs _els =
       unregister_stanza_handler session_data (ns_xmpp_sasl, "challenge");
       unregister_stanza_handler session_data (ns_xmpp_sasl, "failure");
       unregister_stanza_handler session_data (ns_xmpp_sasl, "success");
@@ -722,7 +722,7 @@ struct
 	          raise (AuthFailure (get_name (get_qname p)))
         );
       register_stanza_handler session_data (ns_xmpp_sasl, "success")
-        (fun session_data _attrs els ->
+        (fun session_data _attrs _els ->
           unregister_stanza_handler session_data (ns_xmpp_sasl, "failure");
           unregister_stanza_handler session_data (ns_xmpp_sasl, "success");
 		      nextstep session_data
@@ -766,7 +766,7 @@ struct
       
   let starttls session_data tls_module lang password session_handler =
     register_stanza_handler session_data (ns_xmpp_tls, "proceed")
-      (fun session_data _attrs els ->
+      (fun session_data _attrs _els ->
         unregister_stanza_handler session_data (ns_xmpp_tls, "proceed");
         unregister_stanza_handler session_data (ns_xmpp_tls, "failure");
         register_stanza_handler session_data (ns_streams, "features")
@@ -793,7 +793,7 @@ struct
       (Xmlstream.stanza_serialize session_data.ser
          (make_element (ns_xmpp_tls, "starttls") [] []))
 
-  let start_stream session_data ?tls ?compress lang password session_handler =
+  let start_stream session_data ?tls ?compress:_ lang password session_handler =
     register_stanza_handler session_data (ns_streams, "features")
       (fun session_data _attrs els ->
         unregister_stanza_handler session_data (ns_streams, "features");
@@ -844,7 +844,7 @@ struct
     else
       fail (Error "bad stream header")
         
-  let stream_end session_data () = return ()
+  let stream_end _session_data () = return ()
 
   let create_session_data plain_socket myjid user_data =
     let ser = Xml.Serialization.create [ns_streams; ns_client] in

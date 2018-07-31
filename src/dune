@@ -1,0 +1,28 @@
+(library
+  (name erm_xmpp)
+  (public_name erm_xmpp)
+  (wrapped false)
+  (modules
+    UTF8
+    Xmpp_prep_tables
+    Xmpp_prep
+    Punycode
+    StreamError
+    StanzaError
+    Xmlstream
+    Sasl
+    XMPP
+    JID
+    Roster
+    XEP_disco
+    XEP_last
+    XEP_muc
+    XEP_stats
+    XEP_time
+    XEP_vcard
+    XEP_version
+    XEP_xdata)
+  (preprocess
+    (per_module
+      ((action (run camlp4o %{input-file})) sasl)))
+  (libraries cstruct erm_xml nocrypto))

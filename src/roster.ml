@@ -35,7 +35,7 @@ struct
       with Not_found -> None in
     let items =
       List.fold_left (fun acc -> function
-        | Xmlelement ((ns_roster, "item"), attrs, els) ->
+        | Xmlelement ((_ns_roster, "item"), attrs, els) ->
           let item =
             List.fold_left (fun item -> function
               | ((None, "approved"), value) ->
@@ -81,7 +81,7 @@ struct
               } attrs in
           let item =
             List.fold_left (fun item -> function
-              | Xmlelement ((ns_roster, "group"), _, _) as el ->
+              | Xmlelement ((_ns_roster, "group"), _, _) as el ->
                 let group = get_cdata el in
                   {item with group = group :: item.group}
               | _ -> item
@@ -90,6 +90,8 @@ struct
               acc
             else
               item :: acc
+        | Xmlelement _ | Xmlcdata _ ->
+          acc (* or raise? *)
       ) [] els in
       (ver, List.rev items)
         
@@ -100,7 +102,7 @@ struct
       match ev with
         | IQResult el -> (
           match el with
-            | Some (Xmlelement ((ns_roster, "query"), attrs, els)) ->
+            | Some (Xmlelement ((_ns_roster, "query"), attrs, els)) ->
               let ver, items = decode attrs els in
                 callback ?jid_from ?jid_to ?lang ?ver items
             | _ ->

@@ -31,7 +31,7 @@ struct
   let read s buf start len =
     let size = input s.inc buf start len in
       if size > 0 then
-        print_string "IN: "; print_endline (String.sub buf start size);
+        print_string "IN: "; print_endline (Bytes.sub_string buf start size);
       size
 
   let write s str =

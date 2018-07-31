@@ -5,7 +5,6 @@
 module Make (X : XMPP.S) =
 struct
   open Xml
-  open X
 
   let ns_disco_info = Some "http://jabber.org/protocol/disco#info"
   let ns_disco_items = Some "http://jabber.org/protocol/disco#items"
@@ -31,16 +30,6 @@ struct
     Xmlelement ((ns_disco_info, "feature"),
                 [make_attr "var" feature], [])
       
-  let make_disco_item jid ?node name =
-    let attr = match node with
-      | None ->   [make_attr "jid" jid;
-                   make_attr "name" name]
-      | Some x -> [make_attr "jid" jid;
-                   make_attr "node" x;
-                   make_attr "name" name]
-    in
-      Xmlelement ((ns_disco_items, "item"), attr, [])
-        
   let make_disco_info ~category ~type_ ~name ~features () =
     Xmlelement ((ns_disco_info, "identity"),
                 [make_attr "category" category;

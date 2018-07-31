@@ -9,6 +9,6 @@ struct
   let encode () =
     ()
     
-  let decode el =
+  let decode _el =
     ()
 end
