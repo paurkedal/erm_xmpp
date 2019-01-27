@@ -7,7 +7,7 @@
 
 module Make (X : XMPP.S) =
 struct
-  open Xml
+  open Erm_xml.Xml
   open JID
   open X
 

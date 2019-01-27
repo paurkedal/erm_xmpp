@@ -4,7 +4,7 @@
 
 module Make (X : XMPP.S) =
 struct
-  open Xml
+  open Erm_xml.Xml
 
   let ns_disco_info = Some "http://jabber.org/protocol/disco#info"
   let ns_disco_items = Some "http://jabber.org/protocol/disco#items"

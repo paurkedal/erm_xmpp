@@ -2,7 +2,7 @@
  * (c) 2004-2010 Anastasia Gornostaeva
  *)
 
-open Xml
+open Erm_xml.Xml
   
 exception Error of string
   

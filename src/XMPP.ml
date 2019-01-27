@@ -2,6 +2,7 @@
  * (c) 2004-2012 Anastasia Gornostaeva
  *)
 
+open Erm_xml
 open Xml
 open Xmlstream
 open StanzaError

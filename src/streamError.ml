@@ -2,7 +2,7 @@
  * (c) 2004-2010 Anastasia Gornostaeva
  *)
 
-open Xml
+open Erm_xml.Xml
 
 let ns_xmpp_streams = Some "urn:ietf:params:xml:ns:xmpp-streams"
 let ns_streams = Some "http://etherx.jabber.org/streams"

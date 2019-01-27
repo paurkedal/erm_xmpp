@@ -7,7 +7,7 @@
 
 module Make (X : XMPP.S) =
 struct
-  open Xml
+  open Erm_xml.Xml
   open X
 
   let ns_version = Some "jabber:iq:version"

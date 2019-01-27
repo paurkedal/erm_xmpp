@@ -7,7 +7,7 @@
 
 module Make (X : XMPP.S) =
 struct
-  open Xml
+  open Erm_xml.Xml
 
   let ns_last = Some "jabber:iq:last"
 
